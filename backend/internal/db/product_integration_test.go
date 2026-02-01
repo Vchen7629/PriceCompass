@@ -30,7 +30,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-
 // Integration tests for InsertProductForUser SQL func
 func TestInsertProductForUser(t *testing.T) {
 	pool := testDB.Pool
