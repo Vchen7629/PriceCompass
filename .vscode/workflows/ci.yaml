@@ -1,0 +1,163 @@
+name: CI workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  path-filter:
+    runs-on: ubuntu-latest
+    outputs:
+        frontend: ${{ steps.changes.outputs.frontend }}
+        backend: ${{ steps.changes.outpus.backend }}
+        alert: ${{ steps.changes.outputs.alert }}
+        polling: ${{ steps.changes.outputs.polling }}
+        product: ${{ steps.changes.outputs.product }}
+        search: ${{ steps.changes.outputs.search }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+            alert:
+              - 'backend/cmd/alert/**'
+              - 'backend/internal/**/*alert*.go'
+              - 'backend/internal/config/**'
+              - 'backend/internal/db/connection.go'
+              - 'backend/pkg/**'
+              - 'backend/go.mod'
+              - 'backend/go.sum'
+            polling:
+              - 'backend/cmd/polling/**'
+              - 'backend/internal/**/*polling*.go'
+              - 'backend/internal/config/**'
+              - 'backend/internal/db/connection.go'
+              - 'backend/pkg/**'
+              - 'backend/go.mod'
+              - 'backend/go.sum'
+            product:
+              - 'backend/cmd/product/**'
+              - 'backend/internal/**/*product*.go'
+              - 'backend/internal/config/**'
+              - 'backend/internal/db/connection.go'
+              - 'backend/pkg/**'
+              - 'backend/go.mod'
+              - 'backend/go.sum'
+            search:
+              - 'backend/cmd/search/**'
+              - 'backend/internal/**/*search*.go'
+              - 'backend/internal/config/**'
+              - 'backend/internal/db/connection.go'
+              - 'backend/pkg/**'
+              - 'backend/go.mod'
+              - 'backend/go.sum'
+  
+  frontend-ci:
+    needs: path-filter
+    if: ${{ needs.path-filter.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '>=23.6.1'
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install --dev
+
+      - name: Run Linting 
+        working-directory: frontend
+        run: npm run lint
+      
+      - name: Run tests
+        working-directory: frontend
+        run: npm run test
+      
+      - name: Trigger generate service tags for Frontend
+        run: |
+          gh workflow run generate-service-tags.yaml \
+            -f service=frontend \
+            -f folder=frontend \
+            -f sha=${{ github.sha }}
+        env:
+          GH_TOKEN: ${{ secrets.CI_CD_PAT }}
+  
+  backend-linting:
+    needs: path-filter
+    if: ${{ needs.path-filter.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: 'true'
+      
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.6
+  
+  backend-tests:
+    needs: path-filter
+    if: ${{ needs.path-filter.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.6
+          cache: 'true'
+      
+      - name: Download Go modules
+        working-directory: backend
+        run: go mod download
+        
+      - name: run unit tests
+        working-directory: backend
+        run: go test -tags=unit ./... -v
+      
+      - name: run integration tests
+        working-directory: backend
+        run: go test -tags=integration ./... -v
+
+  coverage:                                                                                                    
+    runs-on: ubuntu-latest                                                                                     
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'                                         
+    steps:                                                                                                     
+      - uses: actions/checkout@v4                                                                              
+      - uses: actions/setup-go@v5                                                                              
+        with:                                                                                                  
+          go-version-file: 'backend/go.mod'                                                                    
+                                                                                                               
+      - name: Run tests with coverage                                                                          
+        working-directory: ./backend                                                                           
+        run: go test -tags=unit/integration ./... -v -race -coverprofile=coverage.out -covermode=atomic                                  
+                                                                                                               
+      - name: Upload coverage to Codecov                                                                       
+        uses: codecov/codecov-action@v4                                                                        
+        with:                                                                                                  
+          files: ./backend/coverage.out                                                                        
+          token: ${{ secrets.CODECOV_TOKEN }}
