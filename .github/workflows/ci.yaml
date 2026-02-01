@@ -16,11 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
         frontend: ${{ steps.changes.outputs.frontend }}
-        backend: ${{ steps.changes.outpus.backend }}
-        alert: ${{ steps.changes.outputs.alert }}
-        polling: ${{ steps.changes.outputs.polling }}
-        product: ${{ steps.changes.outputs.product }}
-        search: ${{ steps.changes.outputs.search }}
+        backend: ${{ steps.changes.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -31,38 +27,6 @@ jobs:
               - 'frontend/**'
             backend:
               - 'backend/**'
-            alert:
-              - 'backend/cmd/alert/**'
-              - 'backend/internal/**/*alert*.go'
-              - 'backend/internal/config/**'
-              - 'backend/internal/db/connection.go'
-              - 'backend/pkg/**'
-              - 'backend/go.mod'
-              - 'backend/go.sum'
-            polling:
-              - 'backend/cmd/polling/**'
-              - 'backend/internal/**/*polling*.go'
-              - 'backend/internal/config/**'
-              - 'backend/internal/db/connection.go'
-              - 'backend/pkg/**'
-              - 'backend/go.mod'
-              - 'backend/go.sum'
-            product:
-              - 'backend/cmd/product/**'
-              - 'backend/internal/**/*product*.go'
-              - 'backend/internal/config/**'
-              - 'backend/internal/db/connection.go'
-              - 'backend/pkg/**'
-              - 'backend/go.mod'
-              - 'backend/go.sum'
-            search:
-              - 'backend/cmd/search/**'
-              - 'backend/internal/**/*search*.go'
-              - 'backend/internal/config/**'
-              - 'backend/internal/db/connection.go'
-              - 'backend/pkg/**'
-              - 'backend/go.mod'
-              - 'backend/go.sum'
   
   frontend-ci:
     needs: path-filter
@@ -154,7 +118,7 @@ jobs:
                                                                                                                
       - name: Run tests with coverage                                                                          
         working-directory: ./backend                                                                           
-        run: go test -tags=unit/integration ./... -v -race -coverprofile=coverage.out -covermode=atomic                                  
+        run: go test -tags=unit,integration ./... -v -race -coverprofile=coverage.out -covermode=atomic                                  
                                                                                                                
       - name: Upload coverage to Codecov                                                                       
         uses: codecov/codecov-action@v4                                                                        
