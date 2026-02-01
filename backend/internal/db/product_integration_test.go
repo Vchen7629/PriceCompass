@@ -401,3 +401,39 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 		assert.Empty(t, products)
 	})
 }
+
+// Integration tests for InsertDeleteProductForUser SQL func
+func TestDeleteProductForUser(t *testing.T) {
+	pool := testDB.Pool
+	t.Run("Returns nil when delete successful", func(t *testing.T) {
+		test.CleanupTables(t, pool)
+
+		userID := test.SeedUser(t, pool, "example@example.com")
+		productID := test.SeedProduct(t, pool, "product", "https://imgur.com/123")
+		test.AddProductToWatchlist(t, pool, userID, productID)
+
+		err := db.DeleteProductForUser(userID, productID, pool)
+
+		require.NoError(t, err)
+	})
+
+	t.Run("returns error when user doesnt exist to delete for", func(t *testing.T) {
+		test.CleanupTables(t, pool)
+		
+		err := db.DeleteProductForUser(1, 2, pool)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found in user's watchlist")
+	})
+
+	t.Run("returns error when product doesnt exist in user watchlist", func(t *testing.T) {
+		test.CleanupTables(t, pool)
+
+		userID := test.SeedUser(t, pool, "example@example.com")
+
+		err := db.DeleteProductForUser(userID, 2, pool)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found in user's watchlist")
+	})
+}
