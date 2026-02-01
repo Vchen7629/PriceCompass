@@ -1,12 +1,14 @@
 package db
 
 import (
-	"backend/pkg"
 	"context"
+	"errors"
 	"time"
+
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"backend/internal/types"
+	"backend/pkg"
 )
 
 type UserProduct struct {
@@ -157,14 +159,18 @@ func DeleteProductForUser(userID, productID int, pool *pgxpool.Pool) error {
 
 	err := pkg.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 		query := `
-			DELETE FROM user_watchlist 
+			DELETE FROM user_watchlist
 			WHERE user_id = $1
 			AND product_id = $2
 		`
 
-		_, err := tx.Exec(ctx, query, userID, productID)
+		cmdTag, err := tx.Exec(ctx, query, userID, productID)
 		if err != nil {
 			return err
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			return errors.New("product not found in user's watchlist")
 		}
 
 		return nil
