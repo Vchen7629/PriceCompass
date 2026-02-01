@@ -38,6 +38,6 @@ CREATE TABLE IF NOT EXISTS price_snapshots (
     currency VARCHAR DEFAULT 'USD',
     in_stock BOOLEAN,
     checked_at TIMESTAMP DEFAULT NOW()
-)
+);
 
 CREATE INDEX idx_price_snapshots_time ON price_snapshots(product_source_id, checked_at DESC);
