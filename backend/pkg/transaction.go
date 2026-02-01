@@ -16,7 +16,7 @@ func WithTransaction(ctx context.Context, pool *pgxpool.Pool, fn func(pgx.Tx) er
 
 	// defer so rollback is always called when any one of the returns is called
 	// It will rollback on errors and when commit succeeds.
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	err = fn(tx)
 	if err != nil {

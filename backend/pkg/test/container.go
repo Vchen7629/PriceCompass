@@ -130,12 +130,12 @@ func runMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 	schemaPath := filepath.Join("..", "..", "test_database", "init.sql")
 	schema, err := os.ReadFile(schemaPath)
 	if err != nil {
-		return fmt.Errorf("Failed to read schema file: %w", err)
+		return fmt.Errorf("failed to read schema file: %w", err)
 	}
 
 	_, err = pool.Exec(ctx, string(schema))
 	if err != nil {
-		return fmt.Errorf("Failed to execute schema: %w", err)
+		return fmt.Errorf("failed to execute schema: %w", err)
 	}
 
 	return nil

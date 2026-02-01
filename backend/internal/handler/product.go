@@ -52,7 +52,10 @@ func (h *Handler) AddProductName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	encodeErr := json.NewEncoder(w).Encode(product)
+	if encodeErr != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 // GET route to fetch a list of the user's tracked products with product metadata like
@@ -79,7 +82,10 @@ func (h *Handler) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(productList)
+	encodeErr := json.NewEncoder(w).Encode(productList)
+	if encodeErr != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 // DELETE route to delete a product to be tracked using
@@ -111,5 +117,8 @@ func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Successfully deleted product")
+	encodeErr := json.NewEncoder(w).Encode("Successfully deleted product")
+	if encodeErr != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
