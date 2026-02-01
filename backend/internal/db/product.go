@@ -150,3 +150,29 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 
 	return productList, nil
 }
+
+// Delete the specified product for the user
+func DeleteProductForUser(userID, productID int, pool *pgxpool.Pool) error {
+	ctx := context.Background()
+
+	err := pkg.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+		query := `
+			DELETE FROM user_watchlist 
+			WHERE user_id = $1
+			AND product_id = $2
+		`
+
+		_, err := tx.Exec(ctx, query, userID, productID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
