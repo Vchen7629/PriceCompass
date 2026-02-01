@@ -15,7 +15,7 @@ import (
 	"backend/pkg"
 )
 
-// Handles setting up the routes and starting the http server for the api
+// Handles setting up the routes and starting the http server for the api 
 func HttpServer(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
