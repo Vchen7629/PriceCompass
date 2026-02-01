@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -67,7 +66,7 @@ func (h *Handler) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request)
 
 	userID, err := strconv.Atoi(user_id)
 	if err != nil {
-		http.Error(w, "Invalid user_id: must be a valid integer", http.StatusBadRequest)
+		http.Error(w, "Invalid user_id: must be a string", http.StatusBadRequest)
 		return
 	}
 
@@ -112,5 +111,5 @@ func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(fmt.Sprint("Successfully deleted product"))
+	json.NewEncoder(w).Encode("Successfully deleted product")
 }
