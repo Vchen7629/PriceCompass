@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS products (
     image_url VARCHAR,
     created_at TIMESTAMP DEFAULT NOW(),
     last_checked_at TIMESTAMP,
-    check_priority INT DEFAULT 0,
+    check_priority INT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_watchlist (
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS product_sources (
 
 CREATE TABLE IF NOT EXISTS price_snapshots (
     id SERIAL PRIMARY KEY,
-    product_source_id INT REFERENCES products(id),
-    price DECIMAL(10, 2)
+    product_source_id INT REFERENCES product_sources(id),
+    price DECIMAL(10, 2),
     currency VARCHAR DEFAULT 'USD',
     in_stock BOOLEAN,
     checked_at TIMESTAMP DEFAULT NOW()
