@@ -24,24 +24,7 @@ func NewHandler(pool *pgxpool.Pool) *Handler {
 	}
 }
 
-// POST route to add a new product to be tracked via url
-// example: adding https://amazon.com/db/qweqewd
-func (h *Handler) AddProductURL(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		URL string `json:"url" validate:"required,url,min=3"`
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Todo: add to database, maybe after parsing the product id or smth
-}
-
-// POST route to add a new product to be tracked via name
-// example: adding "RTX 4080"
+// POST route to add a new product for a user
 func (h *Handler) AddProductName(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		UserId		int `json:"user_id" validate:"required,gte=0"`
