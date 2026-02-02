@@ -19,7 +19,7 @@ import (
 func HttpServer(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
-	h := handler.NewHandler(pool)
+	h := handler.NewAPI(pool)
 
 	router.HandleFunc("POST /api/v1/products/add/name", h.AddProductName)
 	router.HandleFunc("GET /api/v1/products/get/{id...}", h.GetUserTrackedProducts)
