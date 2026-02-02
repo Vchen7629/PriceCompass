@@ -1,6 +1,6 @@
 //go:build unit
 
-package db_test
+package handler_test
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/assert"
-	"backend/pkg/db"
+	"backend/internal/handler"
 )
 
 // unit tests for HandleDatabaseErrors function
@@ -30,7 +30,7 @@ func TestHandleDatabaseErrors(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			pgErr := &pgconn.PgError{Code: tc.errorCode}
 
-			result := db.HandleDatabaseErrors(recorder, pgErr)
+			result := handler.HandleDatabaseErrors(recorder, pgErr)
 
 			assert.True(t, result, "Should return true for PG error code %s", tc.errorCode)                                                
 			assert.Equal(t, tc.expectedStatus, recorder.Code, "Wrong status for error code %s", tc.errorCode)                              
@@ -42,7 +42,7 @@ func TestHandleDatabaseErrors(t *testing.T) {
 		recorder := httptest.NewRecorder()                                                                                                 
 		regularErr := errors.New("some regular error")                                                                                     
 																																			
-		result := db.HandleDatabaseErrors(recorder, regularErr)                                                                            
+		result := handler.HandleDatabaseErrors(recorder, regularErr)                                                                            
 																																			
 		assert.False(t, result)                                                                                                            
 		assert.Equal(t, http.StatusOK, recorder.Code)  

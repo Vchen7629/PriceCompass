@@ -1,4 +1,4 @@
-package db
+package handler
 
 import (
 	"errors"
