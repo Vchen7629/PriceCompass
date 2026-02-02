@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"backend/internal/db"
-	"backend/pkg"
+	pkgdb "backend/pkg/db"
 )
 
 type Handler struct {
@@ -46,7 +46,7 @@ func (h *Handler) AddProductName(w http.ResponseWriter, r *http.Request) {
 	product, dbErr := db.InsertProductForUser(payload.UserId, payload.ProductName, h.pool)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if pkg.HandleDatabaseErrors(w, dbErr) {
+		if pkgdb.HandleDatabaseErrors(w, dbErr) {
 			return
 		}
 	}
@@ -76,7 +76,7 @@ func (h *Handler) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request)
 	productList, dbErr := db.FetchUserTrackedProducts(userID, h.pool)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if pkg.HandleDatabaseErrors(w, dbErr) {
+		if pkgdb.HandleDatabaseErrors(w, dbErr) {
 			return
 		}
 	}
