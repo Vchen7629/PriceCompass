@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"time"
-
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"backend/internal/types"
-	"backend/pkg"
+	"backend/pkg/db"
 )
 
 type UserProduct struct {
@@ -31,7 +30,7 @@ func InsertProductForUser(userID int, productName string, pool *pgxpool.Pool) (t
 	createdAt := time.Now()
 
 	// One transaction for both queries so it can rollback on errors
-	err := pkg.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 		// Try to insert, but if conflict, fetch the existing product instead
 		productQuery := `
 			INSERT INTO products (product_name, created_at, last_checked_at)
@@ -82,7 +81,7 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 	ctx := context.Background()
 	var productList []UserProduct
 	
-	err := pkg.WithTransaction(ctx, pool, func(pgx.Tx) error {
+	err := db.WithTransaction(ctx, pool, func(pgx.Tx) error {
 		query := `
 			WITH latest_prices AS (
 				SELECT DISTINCT ON (pso.product_id, pso.platform)
@@ -157,7 +156,7 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 func DeleteProductForUser(userID, productID int, pool *pgxpool.Pool) error {
 	ctx := context.Background()
 
-	err := pkg.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 		query := `
 			DELETE FROM user_watchlist
 			WHERE user_id = $1

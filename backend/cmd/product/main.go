@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"backend/internal/db"
 	"backend/internal/handler"
-	"backend/pkg"
+	"backend/pkg/middleware"
 )
 
 // Handles setting up the routes and starting the http server for the api 
@@ -27,7 +27,7 @@ func HttpServer(pool *pgxpool.Pool) {
 
 	server := http.Server{
 		Addr: ":8000",
-		Handler: pkg.Logging(router),
+		Handler: middleware.Logging(router),
 	}
 
 	fmt.Println("Server running on http://localhost:8000")
