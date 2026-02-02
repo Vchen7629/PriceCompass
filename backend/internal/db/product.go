@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"time"
-
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"backend/internal/types"
-	"backend/pkg"
+	"backend/pkg/db"
 )
 
 type UserProduct struct {
