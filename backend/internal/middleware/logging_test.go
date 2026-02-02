@@ -3,7 +3,7 @@
 package middleware_test
 
 import (
-	"backend/pkg/middleware"
+	"backend/internal/middleware"
 	"bytes"
 	"log"
 	"net/http"
