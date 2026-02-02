@@ -9,14 +9,14 @@ import (
 	"net/http/httptest"
 	"testing"
 	"backend/internal/handler"
-	"backend/pkg/test"
+	"backend/internal/test"
 )
 
 // Unit tests for the AddProductName Handler function
 func TestAddProductNameHandler(t *testing.T) {
 	t.Run("Empty request body", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 
 		// Create empty request body
 		req := httptest.NewRequest(http.MethodPost, "/api/products", bytes.NewBuffer([]byte("")))
@@ -34,7 +34,7 @@ func TestAddProductNameHandler(t *testing.T) {
 
 	t.Run("Invalid json payload handling", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 		
 		// Create payload with invalid data
 		invalidPayload := map[string]interface{any}{
@@ -61,7 +61,7 @@ func TestAddProductNameHandler(t *testing.T) {
 func TestGetUserTrackedProductsHandler(t *testing.T) {
 	t.Run("Empty User ID", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/products", nil)
 		req.Header.Set("Content-Type", "application/json")
@@ -77,7 +77,7 @@ func TestGetUserTrackedProductsHandler(t *testing.T) {
 	})
 	t.Run("Non integer UserID", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/api/products", nil)
 		req.SetPathValue("id", "invalid")
@@ -98,7 +98,7 @@ func TestGetUserTrackedProductsHandler(t *testing.T) {
 func TestDeleteProductHandler(t *testing.T) {
 	t.Run("Empty request body", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 
 		// Create empty request body
 		req := httptest.NewRequest(http.MethodDelete, "/api/products", bytes.NewBuffer([]byte("")))
@@ -115,7 +115,7 @@ func TestDeleteProductHandler(t *testing.T) {
 	})
 	t.Run("Invalid json payload handling", func(t *testing.T) {
 		mockPool := test.NewMockPool()
-		mockHandler := handler.NewAPI(mockPool)
+		mockHandler := handler.NewAPI(mockPool, nil)
 		
 		// Create payload with invalid data
 		invalidPayload := map[string]interface{any}{

@@ -12,14 +12,14 @@ import (
 	"github.com/joho/godotenv"
 	"backend/internal/db"
 	"backend/internal/handler"
-	"backend/pkg/middleware"
+	"backend/internal/middleware"
 )
 
 // Handles setting up the routes and starting the http server for the api 
 func HttpServer(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
-	h := handler.NewAPI(pool)
+	h := handler.NewAPI(pool, nil)
 
 	router.HandleFunc("POST /api/v1/products/add/name", h.AddProductName)
 	router.HandleFunc("GET /api/v1/products/get/{id...}", h.GetUserTrackedProducts)

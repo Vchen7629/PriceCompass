@@ -4,7 +4,7 @@ package handler_test
 
 import (
 	"backend/internal/handler"
-	"backend/pkg/test"
+	"backend/internal/test"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -49,7 +49,7 @@ func TestAddProductNameHandlerIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool)
+		h := handler.NewAPI(pool, nil)
 		h.AddProductName(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
@@ -86,7 +86,7 @@ func TestGetUserTrackedProductsIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool)
+		h := handler.NewAPI(pool, nil)
 		h.GetUserTrackedProducts(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
@@ -132,7 +132,7 @@ func TestDeleteProductrIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool)
+		h := handler.NewAPI(pool, nil)
 		h.DeleteProduct(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
