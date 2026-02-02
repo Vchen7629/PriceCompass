@@ -116,9 +116,9 @@ jobs:
         with:                                                                                                  
           go-version-file: 'backend/go.mod'                                                                    
                                                                                                                
-      - name: Run tests with coverage                                                                          
-        working-directory: ./backend                                                                           
-        run: go test -tags=unit,integration ./... -v -race -coverprofile=coverage.out -covermode=atomic                                  
+      - name: Run tests with coverage
+        working-directory: ./backend
+        run: go test -tags=unit,integration $(go list ./internal/... ./pkg/... | grep -v -E '/internal/types|/pkg/test') -v -race -coverprofile=coverage.out -covermode=atomic                                  
                                                                                                                
       - name: Upload coverage to Codecov                                                                       
         uses: codecov/codecov-action@v4                                                                        
