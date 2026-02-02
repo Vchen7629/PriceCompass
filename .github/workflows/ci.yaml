@@ -96,15 +96,15 @@ jobs:
           cache: 'true'
       
       - name: Download Go modules
-        working-directory: backend
+        working-directory: ./backend
         run: go mod download
         
       - name: run unit tests
-        working-directory: backend
+        working-directory: ./backend
         run: go test -tags=unit ./... -v
       
       - name: run integration tests
-        working-directory: backend
+        working-directory: ./backend
         run: go test -tags=integration ./... -v
 
   coverage:                                                                                                    
