@@ -8,14 +8,14 @@ import (
 
 // wrapper to extend http response writer to expose 
 // the status codes 
-type wrappedWriter struct {
+type WrappedWriter struct {
 	http.ResponseWriter
-	statusCode int
+	StatusCode int
 }
 
-func (w *wrappedWriter) WriteHeader(statuscode int) {
+func (w *WrappedWriter) WriteHeader(statuscode int) {
 	w.ResponseWriter.WriteHeader(statuscode)
-	w.statusCode = statuscode
+	w.StatusCode = statuscode
 }
 
 // logging middleware to track status codes, the url path, and response latency
@@ -23,12 +23,12 @@ func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		wrapped := &wrappedWriter{
+		wrapped := &WrappedWriter{
 			ResponseWriter: w,
-			statusCode: http.StatusOK,
+			StatusCode: http.StatusOK,
 		}
 
 		next.ServeHTTP(wrapped, r)
-		log.Println(wrapped.statusCode, r.Method, r.URL.Path, time.Since(start))
+		log.Println(wrapped.StatusCode, r.Method, r.URL.Path, time.Since(start))
 	})
 }
