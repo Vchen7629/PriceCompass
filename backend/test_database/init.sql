@@ -1,9 +1,17 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    email VARCHAR UNIQUE NOT NULL,
+    username VARCHAR UNIQUE NOT NULL,
     password_hash VARCHAR NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS sessions {
+    id SERIAL PRIMARY KEY,
+    username VARCHAR REFERENCES users(username),
+    token VARCHAR(64) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+};
 
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
