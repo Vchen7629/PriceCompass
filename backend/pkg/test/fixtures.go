@@ -23,17 +23,17 @@ type PriceSnapshotConfig struct {
 }
 
 // Create a test user and return userID in database
-func SeedUser(t *testing.T, pool *pgxpool.Pool, email string) int {
+func SeedUser(t *testing.T, pool *pgxpool.Pool, username, email string) int {
 	t.Helper()
 
 	ctx := context.Background()
 	var userId int
 
 	err := pool.QueryRow(ctx,
-		`INSERT INTO users (email, password_hash, created_at)
-		 VALUES ($1, $2, NOW())
+		`INSERT INTO users (username, email, password_hash, created_at)
+		 VALUES ($1, $2, $3, NOW())
 		 RETURNING id`,
-		 email, "hashed_password_placeholder",
+		 username, email, "hashed_password_placeholder",
 	).Scan(&userId)
 
 	if err != nil {

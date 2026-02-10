@@ -36,7 +36,7 @@ func TestAddProductNameHandlerIntegration(t *testing.T) {
 	t.Run("successful product encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1", "example@example.com")
 
 		payload := map[string]interface{any}{
 			"user_id":      userID,
@@ -70,7 +70,7 @@ func TestGetUserTrackedProductsIntegration(t *testing.T) {
 	t.Run("successful get products response encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1", "example@example.com")
 
 		products := []string{"product_1", "product_2", "product_3"}
 
@@ -117,7 +117,7 @@ func TestDeleteProductrIntegration(t *testing.T) {
 	t.Run("successful delete encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1",  "example@example.com")
 		productID := test.SeedProduct(t, pool, "product", "image.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 

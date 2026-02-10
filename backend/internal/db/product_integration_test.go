@@ -36,7 +36,7 @@ func TestInsertProductForUser(t *testing.T) {
 	t.Run("Returns correct added product", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1", "example@example.com")
 		product, err := db.InsertProductForUser(userID, "product", pool)
 		
 		require.NoError(t, err)
@@ -53,9 +53,17 @@ func TestInsertProductForUser(t *testing.T) {
 		var product types.Product
 		var err error
 
-		users := []string{"user1@example.com", "user2@example.com"}
+		type UserData struct {
+			Username 	string
+			Email 		string
+		}
+
+		users := []UserData{
+			{Username: "user1", Email: "user1@example.com"}, 
+			{Username: "user2", Email: "user2@example.com"},
+		}
 		for _, user := range users {
-			userID := test.SeedUser(t, pool, user)
+			userID := test.SeedUser(t, pool, user.Username, user.Email)
 
 			product, err = db.InsertProductForUser(userID, "product", pool)
 			require.NoError(t, err)
@@ -73,7 +81,7 @@ func TestInsertProductForUser(t *testing.T) {
 	t.Run("throws sql error when duplicate product is entered for user", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "user@example.com")
+		userID := test.SeedUser(t, pool, "user1", "user@example.com")
 
 		var err error
 		var pgErr *pgconn.PgError
@@ -124,7 +132,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("returns empty list for user with no tracked products", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "empty@example.com")
+		userID := test.SeedUser(t, pool, "user1", "empty@example.com")
 
 		products, err := db.FetchUserTrackedProducts(userID, pool)
 
@@ -135,7 +143,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("returns single product with multiple sources and latest prices", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "empty@example.com")
+		userID := test.SeedUser(t, pool, "user1", "empty@example.com")
 		productID := test.SeedProduct(t, pool, "Mechanical Keyboard", "https://example.com/keyboard.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 		
@@ -194,7 +202,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("returns multiple products for same user", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 		
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "user1", "example@example.com")
 
 		product1ID := test.SeedProduct(t, pool, "Laptop", "https://example.com/laptop.jpg")
 		test.AddProductToWatchlist(t, pool, userID, product1ID)
@@ -252,7 +260,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("Handles source with no price snapshots", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 		
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "user1", "example@example.com")
 		productID := test.SeedProduct(t, pool, "New Product", "https://example.com/new.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 
@@ -275,8 +283,8 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("Only returns products for specified user", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 		
-		user1ID := test.SeedUser(t, pool, "user1@example.com")
-		user2ID := test.SeedUser(t, pool, "user2@example.com")
+		user1ID := test.SeedUser(t, pool, "user1", "user1@example.com")
+		user2ID := test.SeedUser(t, pool, "user1", "user2@example.com")
 		
 		product1ID := test.SeedProduct(t, pool, "User1 Product", "https://example.com/p1.jpg")
 		product2ID := test.SeedProduct(t, pool, "User2 Product", "https://example.com/p2.jpg")
@@ -319,7 +327,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("Handles product with multiple prices in different currencies", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 		
-		userID := test.SeedUser(t, pool, "currency@example.com")		
+		userID := test.SeedUser(t, pool, "user1", "currency@example.com")		
 		productID := test.SeedProduct(t, pool, "Global Product", "https://example.com/global.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 
@@ -364,7 +372,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 	t.Run("Handles multiple sources with same lowest price", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "sameprice@example.com")
+		userID := test.SeedUser(t, pool, "user1", "sameprice@example.com")
 		productID := test.SeedProduct(t, pool, "Same Price Product", "https://example.com/same.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 
@@ -407,7 +415,7 @@ func TestDeleteProductForUser(t *testing.T) {
 	t.Run("Returns nil when delete successful", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "user1", "example@example.com")
 		productID := test.SeedProduct(t, pool, "product", "https://imgur.com/123")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 
@@ -428,7 +436,7 @@ func TestDeleteProductForUser(t *testing.T) {
 	t.Run("returns error when product doesnt exist in user watchlist", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "user1", "example@example.com")
 
 		err := db.DeleteProductForUser(userID, 2, pool)
 

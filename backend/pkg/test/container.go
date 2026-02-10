@@ -152,6 +152,7 @@ func CleanupTables(t *testing.T, pool *pgxpool.Pool) {
 		"user_watchlist",
 		"products",
 		"users",
+		"sessions",
 	}
 
 	for _, table := range tables {
