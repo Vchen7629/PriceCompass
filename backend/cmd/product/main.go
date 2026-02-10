@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"backend/internal/db"
 	"backend/internal/handler"
-	"backend/pkg/middleware"
+	"backend/internal/middleware"
 )
 
 // Handles setting up the routes and starting the http server for the api 
@@ -20,10 +20,11 @@ func HttpServer(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
 	h := handler.NewHandler(pool)
+	m := middleware.NewHandler(pool)
 
-	router.HandleFunc("POST /api/v1/products/add/name", h.AddProductName)
-	router.HandleFunc("GET /api/v1/products/get/{id...}", h.GetUserTrackedProducts)
-	router.HandleFunc("DELETE /api/v1/products/delete/{id}", h.DeleteProduct)
+	router.HandleFunc("POST /api/v1/products/add/name", m.AuthMiddleware(h.AddProductName))
+	router.HandleFunc("GET /api/v1/products/get/{id...}", m.AuthMiddleware(h.GetUserTrackedProducts))
+	router.HandleFunc("DELETE /api/v1/products/delete/{id}", m.AuthMiddleware(h.DeleteProduct))
 
 	server := http.Server{
 		Addr: ":8000",
