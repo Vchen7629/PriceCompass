@@ -3,7 +3,6 @@
 package middleware_test
 
 import (
-	"backend/pkg/middleware"
 	"bytes"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"backend/internal/middleware"
 )
 
 // unit tests for writeHeader function
