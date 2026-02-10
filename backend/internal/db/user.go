@@ -102,3 +102,28 @@ func LoginUser(username, password string, pool *pgxpool.Pool) (string, error) {
 
 	return sessionToken, err
 }
+
+// Use the provided sessionToken from frontend request and attempt to fetch the userId
+// and username if the sessionToken is valid
+func ValidateSession(sessionToken string, pool *pgxpool.Pool) (int, string, error) {
+	ctx := context.Background()
+	var userId int
+	var username string
+
+	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+		query := `SELECT id, username FROM sessions WHERE token = $1`
+
+		err := tx.QueryRow(ctx, query, sessionToken).Scan(&userId, &username)
+		if err != nil {
+			return fmt.Errorf("Error fetching session for user: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return 0, "", err
+	}
+
+	return userId, username, nil
+}
