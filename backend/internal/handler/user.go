@@ -11,6 +11,7 @@ import (
 func (h *Handler) UserSignUp(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Username string `json:"username" validate:"required,min=2"`
+		Email string `json:"email" validate:"required,min=4"`
 		Password string `json:"password" validate:"required,min=2"`
 	}
 
@@ -26,7 +27,7 @@ func (h *Handler) UserSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	insertErr := db.InsertNewUser(payload.Username, payload.Password, h.pool)
+	insertErr := db.InsertNewUser(payload.Username, payload.Email, payload.Password, h.pool)
 	if insertErr != nil {
 		http.Error(w, insertErr.Error(), http.StatusInternalServerError)
 		return
