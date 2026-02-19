@@ -15,22 +15,30 @@ import (
 
 // Create a new user account in the database with the provided
 // username and password strings
-func InsertNewUser(username, password string, pool *pgxpool.Pool) error {
+func InsertNewUser(username, email, password string, pool *pgxpool.Pool) error {
 	ctx := context.Background()
 	createdAt := time.Now()
 	
 	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
-		var exists bool
+		var usernameExists bool
+		var emailExists bool
 		userExistQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`
+		emailExistQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
 
 		// need to update all my other queries to use tx instead of pool for atomic transactions
-		err := tx.QueryRow(ctx, userExistQuery, username).Scan(&exists)
+		err := tx.QueryRow(ctx, userExistQuery, username).Scan(&usernameExists)
 		if err != nil {
 			return err
 		}
 
-		if exists {
-			return fmt.Errorf("user already exists")
+		err = tx.QueryRow(ctx, emailExistQuery, email).Scan(&emailExists)
+
+		if usernameExists {
+			return fmt.Errorf("username already exists")
+		}
+
+		if emailExists {
+			return fmt.Errorf("email already exists")
 		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -39,11 +47,11 @@ func InsertNewUser(username, password string, pool *pgxpool.Pool) error {
 		}
 
 		userQuery := `
-			INSERT INTO users (username, password_hash, created_at)
-			VALUES ($1, $2, $3)
+			INSERT INTO users (username, email, password_hash, created_at)
+			VALUES ($1, $2, $3, $4)
 		`
 
-		_, err = tx.Exec(ctx, userQuery, username, hashedPassword, createdAt)
+		_, err = tx.Exec(ctx, userQuery, username, email, hashedPassword, createdAt)
 		if err != nil {
 			return fmt.Errorf("failed to create new user: %w", err)
 		}

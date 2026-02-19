@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR UNIQUE NOT NULL,
-    email VARCHAR UNIQUE,
+    email VARCHAR UNIQUE NOT NULL,
     password_hash VARCHAR NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
