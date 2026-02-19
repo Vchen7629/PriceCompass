@@ -284,7 +284,7 @@ func TestFetchUserTrackedProducts(t *testing.T) {
 		test.CleanupTables(t, pool)
 		
 		user1ID := test.SeedUser(t, pool, "user1", "user1@example.com")
-		user2ID := test.SeedUser(t, pool, "user1", "user2@example.com")
+		user2ID := test.SeedUser(t, pool, "user2", "user2@example.com")
 		
 		product1ID := test.SeedProduct(t, pool, "User1 Product", "https://example.com/p1.jpg")
 		product2ID := test.SeedProduct(t, pool, "User2 Product", "https://example.com/p2.jpg")
