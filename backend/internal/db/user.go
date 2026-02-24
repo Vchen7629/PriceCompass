@@ -20,25 +20,14 @@ func InsertNewUser(username, email, password string, pool *pgxpool.Pool) error {
 	createdAt := time.Now()
 	
 	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
-		var usernameExists bool
-		var emailExists bool
-		userExistQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`
-		emailExistQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
-
-		// need to update all my other queries to use tx instead of pool for atomic transactions
-		err := tx.QueryRow(ctx, userExistQuery, username).Scan(&usernameExists)
+		err := ValidateExistsUserTable(ctx, tx, "username", username)
 		if err != nil {
 			return err
 		}
 
-		err = tx.QueryRow(ctx, emailExistQuery, email).Scan(&emailExists)
-
-		if usernameExists {
-			return fmt.Errorf("username already exists")
-		}
-
-		if emailExists {
-			return fmt.Errorf("email already exists")
+		err = ValidateExistsUserTable(ctx, tx, "email", email)
+		if err != nil {
+			return err
 		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -74,7 +63,7 @@ func LoginUser(username, password string, pool *pgxpool.Pool) (string, error) {
 	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 		var hashedPassword string
 
-		fetchPassQuery := `SELECT password FROM users WHERE username = $1`
+		fetchPassQuery := `SELECT password_hash FROM users WHERE username = $1`
 
 		err := tx.QueryRow(ctx, fetchPassQuery, username).Scan(&hashedPassword)
 		if err != nil {
@@ -108,30 +97,9 @@ func LoginUser(username, password string, pool *pgxpool.Pool) (string, error) {
 		return nil
 	})
 
-	return sessionToken, err
-}
-
-// Use the provided sessionToken from frontend request and attempt to fetch the userId
-// and username if the sessionToken is valid
-func ValidateSession(sessionToken string, pool *pgxpool.Pool) (int, string, error) {
-	ctx := context.Background()
-	var userId int
-	var username string
-
-	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
-		query := `SELECT id, username FROM sessions WHERE token = $1`
-
-		err := tx.QueryRow(ctx, query, sessionToken).Scan(&userId, &username)
-		if err != nil {
-			return fmt.Errorf("Error fetching session for user: %w", err)
-		}
-
-		return nil
-	})
-
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 
-	return userId, username, nil
+	return sessionToken, err
 }
