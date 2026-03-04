@@ -72,7 +72,7 @@ func LoginUser(username, password string, pool *pgxpool.Pool) (string, error) {
 
 		err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 		if err != nil {
-			return fmt.Errorf("Passwords don't match, can't login")
+			return fmt.Errorf("passwords don't match, can't login")
 		}
 
 		// generating session token using random crypto

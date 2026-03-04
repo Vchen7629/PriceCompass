@@ -40,7 +40,7 @@ func ValidateSession(sessionToken string, pool *pgxpool.Pool) (int, string, erro
 
 		err := tx.QueryRow(ctx, query, sessionToken).Scan(&userId, &username)
 		if err != nil {
-			return fmt.Errorf("Error fetching session for user: %w", err)
+			return fmt.Errorf("error fetching session for user: %w", err)
 		}
 
 		return nil
