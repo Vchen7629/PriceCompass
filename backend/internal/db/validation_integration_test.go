@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+
+
 func TestValidateExistsUserTable(t *testing.T) {
 	pool := testDB.Pool
 	ctx := context.Background()
@@ -48,16 +50,17 @@ func TestValidateExistsUserTable(t *testing.T) {
 
 func TestValidateSession(t *testing.T) {
 	pool := testDB.Pool
+	repo := db.NewRepository(pool)
 
 	t.Run("Should return an error if nonexistant session token is provided", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		db.InsertNewUser("user1", "idk@gmail.com", "pass123", pool)
-		_, err := db.LoginUser("user1", "pass123", pool)
+		repo.InsertNewUser("user1", "idk@gmail.com", "pass123")
+		_, err := repo.LoginUser("user1", "pass123")
 
 		assert.Equal(t, nil, err)
 
-		userId, username, err := db.ValidateSession("23udweu", pool)
+		userId, username, err := repo.ValidateSession("23udweu")
 
 		assert.NotEqual(t, nil, err, "Should return a non nil error")
 		assert.Equal(t, 0, userId, "validate session returns 0 userId on error")
@@ -67,12 +70,12 @@ func TestValidateSession(t *testing.T) {
 	t.Run("Should return correct userId and username if correct session token is provided", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		db.InsertNewUser("user1", "idk@gmail.com", "pass123", pool)
-		sessionToken, err := db.LoginUser("user1", "pass123", pool)
+		repo.InsertNewUser("user1", "idk@gmail.com", "pass123")
+		sessionToken, err := repo.LoginUser("user1", "pass123")
 
 		assert.Equal(t, nil, err)
 
-		userId, username, err := db.ValidateSession(sessionToken, pool)
+		userId, username, err := repo.ValidateSession(sessionToken)
 
 		assert.Equal(t, nil, err, "Should return a nil error")
 		assert.Equal(t, 1, userId)
