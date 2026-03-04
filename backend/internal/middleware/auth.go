@@ -18,6 +18,10 @@ func NewHandler(pool *pgxpool.Pool) *Handler {
 	}
 }
 
+type contextKey string
+
+const userContextKey contextKey = "user"
+
 type UserContext struct {
 	UserId 		int
 	Username 	string
@@ -44,7 +48,7 @@ func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			Username: 	username,
 		}
 
-		ctx := context.WithValue(r.Context(), "user", userContext)
+		ctx := context.WithValue(r.Context(), userContextKey, userContext)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
