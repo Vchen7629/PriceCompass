@@ -8,7 +8,7 @@ import (
 )
 
 // Pgxpool postgres connection pool config values
-func DatabaseConfig() *pgxpool.Config {
+func DatabaseConfig() *pgxpool.Config { 
 	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Unable to parse DATABASE_URL %v\n", err)

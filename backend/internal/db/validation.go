@@ -4,9 +4,7 @@ import (
 	"backend/pkg/db"
 	"context"
 	"fmt"
-
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // helper method to validate if a value exists in the column in users table
@@ -30,12 +28,12 @@ func ValidateExistsUserTable(ctx context.Context, tx pgx.Tx, column, val string)
 
 // Use the provided sessionToken from frontend request and attempt to fetch the userId
 // and username if the sessionToken is valid
-func ValidateSession(sessionToken string, pool *pgxpool.Pool) (int, string, error) {
+func (r *Repository) ValidateSession(sessionToken string) (int, string, error) {
 	ctx := context.Background()
 	var userId int
 	var username string
 
-	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		query := `SELECT id, username FROM sessions WHERE token = $1`
 
 		err := tx.QueryRow(ctx, query, sessionToken).Scan(&userId, &username)

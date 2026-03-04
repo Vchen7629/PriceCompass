@@ -19,7 +19,8 @@ import (
 func HttpPool(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
-	h := handler.NewHandler(pool)
+	userRepo := db.NewRepository(pool)
+	h := handler.NewUserHandler(userRepo)
 
 	router.HandleFunc("POST /api/v1/user/login", h.UserLogin)
 	router.HandleFunc("POST /api/v1/user/signup", h.UserSignUp)

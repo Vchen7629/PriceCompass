@@ -7,19 +7,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
-
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Create a new user account in the database with the provided
 // username and password strings
-func InsertNewUser(username, email, password string, pool *pgxpool.Pool) error {
+func (r *Repository) InsertNewUser(username, email, password string) error {
 	ctx := context.Background()
 	createdAt := time.Now()
 	
-	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		err := ValidateExistsUserTable(ctx, tx, "username", username)
 		if err != nil {
 			return err
@@ -56,11 +54,11 @@ func InsertNewUser(username, email, password string, pool *pgxpool.Pool) error {
 
 // attempt to login to an user account using the username and password provided
 // return the session token if successful
-func LoginUser(username, password string, pool *pgxpool.Pool) (string, error) {
+func (r *Repository) LoginUser(username, password string) (string, error) {
 	ctx := context.Background()
 	var sessionToken string
 
-	err := db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		var hashedPassword string
 
 		fetchPassQuery := `SELECT password_hash FROM users WHERE username = $1`

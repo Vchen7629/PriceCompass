@@ -1,22 +1,10 @@
 package middleware
 
 import (
-	"backend/internal/db"
+	"backend/internal/store"
 	"context"
 	"net/http"
-
-	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-type Handler struct {
-	pool *pgxpool.Pool
-}
-
-func NewHandler(pool *pgxpool.Pool) *Handler {
-	return &Handler{
-		pool: pool,
-	}
-}
 
 type contextKey string
 
@@ -25,6 +13,14 @@ const userContextKey contextKey = "user"
 type UserContext struct {
 	UserId 		int
 	Username 	string
+}
+
+type Handler struct {
+	handler		store.ValidationStore
+}
+
+func NewMiddlewareHandler(store store.ValidationStore) *Handler {
+	return &Handler{handler: store}
 }
 
 // validates session by checking the session token in the cookie
@@ -37,7 +33,7 @@ func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		userId, username, err := db.ValidateSession(cookie.Value, h.pool)
+		userId, username, err := h.handler.ValidateSession(cookie.Value)
 		if err != nil {
 			http.Error(w, "Unauthorized: invalid session", http.StatusUnauthorized)
 			return

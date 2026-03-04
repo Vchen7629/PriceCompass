@@ -73,13 +73,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version: v1.25.6
           cache: 'true'
       
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.6
+          working-directory: backend
   
   backend-tests:
     needs: path-filter

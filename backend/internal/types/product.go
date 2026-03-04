@@ -16,3 +16,14 @@ type PriceData struct {
 	InStock		bool		`json:"in_stock"`
 	Timestamp	time.Time	`json:"timestamp"`
 }
+
+type UserProduct struct {
+	ProductID 		int 		`json:"product_id"`
+	ProductName		string		`json:"product_name"`
+	ImageUrl		string		`json:"image_url"`
+	AddedAt			time.Time	`json:"added_at"`
+	LastCheckedAt 	time.Time	`json:"last_checked_at"`
+	LowestPrice		float64		`json:"lowest_price"`
+	LowestSource	string 		`json:"lowest_source"`
+	InStock			bool		`json:"in_stock"`
+}

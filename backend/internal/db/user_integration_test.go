@@ -14,12 +14,13 @@ import (
 // Integration tests for InsertProductForUser SQL func
 func TestInsertNewUser(t *testing.T) {
 	pool := testDB.Pool
+	repo := db.NewRepository(pool)
 
 	t.Run("Trying to insert a new username that already exists", func(t *testing.T) {
 		test.CleanupTables(t, pool)
-
+	
 		test.SeedUser(t, pool, "username1", "idk@gmail.com")
-		err := db.InsertNewUser("username1", "123@gmail.com", "password", pool)
+		err := repo.InsertNewUser("username1", "123@gmail.com", "password")
 
 		assert.Equal(t, "username already exists", err.Error(), "should return error")
 	})
@@ -28,7 +29,7 @@ func TestInsertNewUser(t *testing.T) {
 		test.CleanupTables(t, pool)
 
 		test.SeedUser(t, pool, "username1", "idk@gmail.com")
-		err := db.InsertNewUser("username2", "idk@gmail.com", "password", pool)
+		err := repo.InsertNewUser("username2", "idk@gmail.com", "password")
 
 		assert.Equal(t, "email already exists", err.Error(), "should return error")
 	})
@@ -37,7 +38,7 @@ func TestInsertNewUser(t *testing.T) {
 		test.CleanupTables(t, pool)
 
 		test.SeedUser(t, pool, "username2", "idk@gmail.com")
-		err := db.InsertNewUser("username1", "123@gmail.com", "password", pool)
+		err := repo.InsertNewUser("username1", "123@gmail.com", "password")
 
 		assert.Equal(t, nil, err, "should return nil or no error")
 	})
@@ -46,7 +47,7 @@ func TestInsertNewUser(t *testing.T) {
 		test.CleanupTables(t, pool)
 		var exists bool
 
-		err := db.InsertNewUser("username1", "123@gmail.com", "password", pool)
+		err := repo.InsertNewUser("username1", "123@gmail.com", "password")
 
 		assert.Equal(t, nil, err, "should return nil or no error")
 
@@ -61,7 +62,7 @@ func TestInsertNewUser(t *testing.T) {
 		test.CleanupTables(t, pool)
 		var password string
 
-		err := db.InsertNewUser("username1", "123@gmail.com", "password", pool)
+		err := repo.InsertNewUser("username1", "123@gmail.com", "password")
 
 		assert.Equal(t, nil, err, "should return nil or no error")
 
@@ -76,12 +77,13 @@ func TestInsertNewUser(t *testing.T) {
 // Integration tests for LoginUser SQL func
 func TestLoginUser(t *testing.T) {
 	pool := testDB.Pool
+	repo := db.NewRepository(pool)
 
 	t.Run("Invalid password should raise an error", func(t *testing.T) {
 		test.CleanupTables(t, pool)
-		db.InsertNewUser("user1", "123@gmail.com", "password123", pool)
+		repo.InsertNewUser("user1", "123@gmail.com", "password123")
 
-		sessionToken, err := db.LoginUser("user1", "invalidpass", pool)
+		sessionToken, err := repo.LoginUser("user1", "invalidpass")
 
 		assert.NotEqual(t, nil, err, "should return an error")
 		assert.Equal(t, "", sessionToken, "session token should be empty")
@@ -89,9 +91,9 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Invalid username should raise an error", func(t *testing.T) {
 		test.CleanupTables(t, pool)
-		db.InsertNewUser("user1", "123@gmail.com", "password123", pool)
+		repo.InsertNewUser("user1", "123@gmail.com", "password123")
 
-		sessionToken, err := db.LoginUser("user123", "password123", pool)
+		sessionToken, err := repo.LoginUser("user123", "password123")
 
 		assert.NotEqual(t, nil, err, "should return an error")
 		assert.Equal(t, "", sessionToken, "session token should be empty")
@@ -100,9 +102,9 @@ func TestLoginUser(t *testing.T) {
 	t.Run("Correct username and password should create a new session in database and return it", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 		var sessionExists bool
-		db.InsertNewUser("user1", "123@gmail.com", "password123", pool)
+		repo.InsertNewUser("user1", "123@gmail.com", "password123")
 
-		sessionToken, err := db.LoginUser("user1", "password123", pool)
+		sessionToken, err := repo.LoginUser("user1", "password123")
 
 		assert.Equal(t, nil, err, "should not return an error")
 
