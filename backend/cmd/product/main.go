@@ -19,12 +19,15 @@ import (
 func HttpServer(pool *pgxpool.Pool) {
 	router := http.NewServeMux()
 
-	h := handler.NewHandler(pool)
-	m := middleware.NewHandler(pool)
+	productRepo := db.NewRepository(pool)
+	userRepo := db.NewRepository(pool)
+
+	h := handler.NewProductHandler(productRepo)
+	m := middleware.NewMiddlewareHandler(userRepo)
 
 	router.HandleFunc("POST /api/v1/products/add/name", m.AuthMiddleware(h.AddProductName))
 	router.HandleFunc("GET /api/v1/products/get/{id...}", m.AuthMiddleware(h.GetUserTrackedProducts))
-	router.HandleFunc("DELETE /api/v1/products/delete/{id}", m.AuthMiddleware(h.DeleteProduct))
+	router.HandleFunc("DELETE /api/v1/products/delete", m.AuthMiddleware(h.DeleteProduct))
 
 	server := http.Server{
 		Addr: ":8000",
