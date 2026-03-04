@@ -1,14 +1,27 @@
 package handler
 
 import (
-	"backend/internal/db"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"backend/internal/store"
+	"github.com/go-playground/validator/v10"
 )
 
+type UserHandler struct {
+	users		store.UserStore
+	validate 	*validator.Validate
+}
+
+func NewUserHandler(users store.UserStore) *UserHandler {
+	return &UserHandler{
+		users: 		users,
+		validate: 	validator.New(),
+	}
+}
+
 // Create a new user account
-func (h *Handler) UserSignUp(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UserSignUp(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Username string `json:"username" validate:"required,min=2"`
 		Email string `json:"email" validate:"required,min=4"`
@@ -27,7 +40,7 @@ func (h *Handler) UserSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	insertErr := db.InsertNewUser(payload.Username, payload.Email, payload.Password, h.pool)
+	insertErr := h.users.InsertNewUser(payload.Username, payload.Email, payload.Password)
 	if insertErr != nil {
 		http.Error(w, insertErr.Error(), http.StatusInternalServerError)
 		return
@@ -42,7 +55,7 @@ func (h *Handler) UserSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 // login to existing user account
-func (h *Handler) UserLogin(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UserLogin(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Username string `json:"username" validate:"required,min=2"`
 		Password string `json:"password" validate:"required,min=2"`
@@ -60,9 +73,13 @@ func (h *Handler) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionToken, err := db.LoginUser(payload.Username, payload.Password, h.pool)
+	sessionToken, err := h.users.LoginUser(payload.Username, payload.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		if err.Error() == "passwords don't match, can't login" {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
