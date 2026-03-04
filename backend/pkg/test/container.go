@@ -152,10 +152,11 @@ func CleanupTables(t *testing.T, pool *pgxpool.Pool) {
 		"user_watchlist",
 		"products",
 		"users",
+		"sessions",
 	}
 
 	for _, table := range tables {
-		_, err := pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table))
+		_, err := pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
 		if err != nil {
 			t.Fatalf("Failed to truncate table %s: %v", table, err)
 		}
