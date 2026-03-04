@@ -5,31 +5,19 @@ import (
 	"errors"
 	"time"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"backend/internal/types"
 )
 
-type UserProduct struct {
-	ProductID 		int 		`json:"product_id"`
-	ProductName		string		`json:"product_name"`
-	ImageUrl		string		`json:"image_url"`
-	AddedAt			time.Time	`json:"added_at"`
-	LastCheckedAt 	time.Time	`json:"last_checked_at"`
-	LowestPrice		float64		`json:"lowest_price"`
-	LowestSource	string 		`json:"lowest_source"`
-	InStock			bool		`json:"in_stock"`
-}
-
 // Insert a product into the products table for the user with the name and timestamps
 // additionally returns product metadata so frontend can immediately show the product
-func InsertProductForUser(userID int, productName string, pool *pgxpool.Pool) (types.Product, error) {
+func (r *Repository) InsertProductForUser(userID int, productName string) (types.Product, error) {
 	ctx := context.Background()
 	var product types.Product
 
 	createdAt := time.Now()
 
 	// One transaction for both queries so it can rollback on errors
-	err := WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		// Try to insert, but if conflict, fetch the existing product instead
 		productQuery := `
 			INSERT INTO products (product_name, created_at, last_checked_at)
@@ -76,11 +64,11 @@ func InsertProductForUser(userID int, productName string, pool *pgxpool.Pool) (t
 
 // Fetch all tracked products for the user, returns a list of products with the
 // name, added at timestamp, lowest price, and an availablity flag
-func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, error) {
+func (r *Repository) FetchUserTrackedProducts(userID int) ([]types.UserProduct, error) {
 	ctx := context.Background()
-	var productList []UserProduct
+	var productList []types.UserProduct
 	
-	err := WithTransaction(ctx, pool, func(pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(pgx.Tx) error {
 		query := `
 			WITH latest_prices AS (
 				SELECT DISTINCT ON (pso.product_id, pso.platform)
@@ -111,7 +99,7 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 			WHERE uw.user_id = $1
 			ORDER BY uw.added_at DESC`
 	
-		rows, err := pool.Query(
+		rows, err := r.pool.Query(
 			context.Background(), 
 			query, 
 			userID,
@@ -122,7 +110,7 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 		}
 
 		for rows.Next() {
-			var product UserProduct
+			var product types.UserProduct
 
 			err := rows.Scan(
 				&product.ProductID,
@@ -145,17 +133,17 @@ func FetchUserTrackedProducts(userID int, pool *pgxpool.Pool) ([]UserProduct, er
 	})
 
 	if err != nil {
-		return []UserProduct{}, err
+		return []types.UserProduct{}, err
 	}
 
 	return productList, nil
 }
 
 // Delete the specified product for the user
-func DeleteProductForUser(userID, productID int, pool *pgxpool.Pool) error {
+func (r *Repository) DeleteProductForUser(userID, productID int) error {
 	ctx := context.Background()
 
-	err := WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		query := `
 			DELETE FROM user_watchlist
 			WHERE user_id = $1

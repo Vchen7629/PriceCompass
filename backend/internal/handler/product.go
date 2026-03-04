@@ -1,15 +1,29 @@
 package handler
 
 import (
+	"backend/pkg/db"
+	"backend/internal/store"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
-	"backend/internal/db"
+	"github.com/go-playground/validator/v10"
 )
 
+type ProductHandler struct {
+	products	store.ProductStore
+	validate 	*validator.Validate
+}
+
+func NewProductHandler(products store.ProductStore) *ProductHandler {
+	return &ProductHandler{
+		products: 	products,
+		validate: 	validator.New(),
+	}
+}
+
 // POST route to add a new product for a user
-func (api *API) AddProductName(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) AddProductName(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		UserId		int `json:"user_id" validate:"required,gte=0"`
 		ProductName string `json:"product_name" validate:"required,min=2"`
@@ -28,12 +42,14 @@ func (api *API) AddProductName(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	product, dbErr := db.InsertProductForUser(payload.UserId, payload.ProductName, api.Pool)
+	product, dbErr := h.products.InsertProductForUser(payload.UserId, payload.ProductName)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if HandleDatabaseErrors(w, dbErr) {
+		if db.HandleDatabaseErrors(w, dbErr) {
 			return
 		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -45,7 +61,7 @@ func (api *API) AddProductName(w http.ResponseWriter, r *http.Request) {
 
 // GET route to fetch a list of the user's tracked products with product metadata like
 // name, lowest price, lowest source, available from the database
-func (api *API) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request) {
 	user_id := r.PathValue("id")
 	if user_id == "" {
 		http.Error(w, "Missing required user_id param", http.StatusBadRequest)
@@ -58,12 +74,14 @@ func (api *API) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productList, dbErr := db.FetchUserTrackedProducts(userID, api.Pool)
+	productList, dbErr := h.products.FetchUserTrackedProducts(userID)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if HandleDatabaseErrors(w, dbErr) {
+		if db.HandleDatabaseErrors(w, dbErr) {
 			return
 		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -75,7 +93,7 @@ func (api *API) GetUserTrackedProducts(w http.ResponseWriter, r *http.Request) {
 
 // DELETE route to delete a product to be tracked using
 // the product id in the database
-func (api *API) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		UserId		int `json:"user_id" validate:"required,gte=0"`
 		ProductID 	int `json:"product_id" validate:"required,gte=0"`
@@ -95,9 +113,13 @@ func (api *API) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	dbErr := db.DeleteProductForUser(payload.UserId, payload.ProductID, api.Pool)
+	dbErr := h.products.DeleteProductForUser(payload.UserId, payload.ProductID)
 	if dbErr != nil {
-		http.Error(w, dbErr.Error(), http.StatusBadRequest)
+		if dbErr.Error() == "product not found in user's watchlist" {
+			http.Error(w, dbErr.Error(), http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
 		return
 	}
 

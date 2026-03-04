@@ -3,6 +3,7 @@
 package handler_test
 
 import (
+	"backend/internal/db"
 	"backend/internal/handler"
 	"backend/internal/test"
 	"bytes"
@@ -36,9 +37,9 @@ func TestAddProductNameHandlerIntegration(t *testing.T) {
 	t.Run("successful product encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1", "example@example.com")
 
-		payload := map[string]interface{any}{
+		payload := map[string]interface{}{
 			"user_id":      userID,
 			"product_name": "gpu",
 		}
@@ -49,12 +50,13 @@ func TestAddProductNameHandlerIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool, nil)
+		productRepo := db.NewRepository(pool)
+		h := handler.NewProductHandler(productRepo)
 		h.AddProductName(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
 
-		var response map[string]interface{any}
+		var response map[string]interface{}
 		err := json.NewDecoder(w.Body).Decode(&response)
 		assert.NoError(t, err, "Response should be valid JSON")
 
@@ -70,7 +72,7 @@ func TestGetUserTrackedProductsIntegration(t *testing.T) {
 	t.Run("successful get products response encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1", "example@example.com")
 
 		products := []string{"product_1", "product_2", "product_3"}
 
@@ -86,7 +88,8 @@ func TestGetUserTrackedProductsIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool, nil)
+		productRepo := db.NewRepository(pool)
+		h := handler.NewProductHandler(productRepo)
 		h.GetUserTrackedProducts(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
@@ -117,11 +120,11 @@ func TestDeleteProductrIntegration(t *testing.T) {
 	t.Run("successful delete encoded properly", func(t *testing.T) {
 		test.CleanupTables(t, pool)
 
-		userID := test.SeedUser(t, pool, "example@example.com")
+		userID := test.SeedUser(t, pool, "username1",  "example@example.com")
 		productID := test.SeedProduct(t, pool, "product", "image.jpg")
 		test.AddProductToWatchlist(t, pool, userID, productID)
 
-		payload := map[string]interface{any}{
+		payload := map[string]interface{}{
 			"user_id":      userID,
 			"product_id": 	productID,
 		}
@@ -132,7 +135,8 @@ func TestDeleteProductrIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		h := handler.NewAPI(pool, nil)
+		productRepo := db.NewRepository(pool)
+		h := handler.NewProductHandler(productRepo)
 		h.DeleteProduct(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code, "Success should return 200")
