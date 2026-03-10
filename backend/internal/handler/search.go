@@ -6,19 +6,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"github.com/go-playground/validator/v10"
 )
 
 type SearchHandler struct {
-	Validate 	*validator.Validate
-	PlatformClients	*service.PlatformClients
+	EbayClient *service.OauthClient
 }
 
 // handler for validating api input params
-func NewSearchHandler(clients *service.PlatformClients) *SearchHandler {
+func NewSearchHandler(ebayClient *service.OauthClient) *SearchHandler {
 	return &SearchHandler{
-		Validate: 			validator.New(),
-		PlatformClients: 	clients,
+		EbayClient: ebayClient,
 	}
 }
 
@@ -31,19 +28,16 @@ func (search *SearchHandler) SearchProductByName(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if search.PlatformClients == nil {
+	if search.EbayClient == nil {
 		http.Error(w, "Search service not available", http.StatusServiceUnavailable)
 		return
 	}
 
-	// Goroutine to check all 4 platforms in parallel
-	//amazonCh := make(chan []searchResult)
-	ebayCh   := make(chan []types.SearchResult)
-	bestbuyCh:= make(chan []types.SearchResult)
-	neweggCh := make(chan []types.SearchResult)
+	//amazonCh := make(chan []types.SearchResult)
+	ebayCh := make(chan []types.SearchResult)
 
 	go func() {
-		res, err := service.SearchProductEbay(search.PlatformClients.Ebay, productName)
+		res, err := service.SearchProductEbay(search.EbayClient, productName)
 		if err != nil {
 			log.Printf("ebay search error: %v", err)
 			res = []types.SearchResult{}
@@ -51,13 +45,8 @@ func (search *SearchHandler) SearchProductByName(w http.ResponseWriter, r *http.
 		ebayCh <- res
 	}()
 
-	go func() { bestbuyCh <- []types.SearchResult{} }()
-	go func() { neweggCh <- []types.SearchResult{} }()
-
 	var allResults []types.SearchResult
 	allResults = append(allResults, <-ebayCh...)
-	allResults = append(allResults, <-bestbuyCh...)
-	allResults = append(allResults, <-neweggCh...)
 
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(allResults)
