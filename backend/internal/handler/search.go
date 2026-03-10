@@ -6,18 +6,32 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"github.com/go-playground/validator/v10"
 )
+
+type SearchHandler struct {
+	Validate 	*validator.Validate
+	PlatformClients	*service.PlatformClients
+}
+
+// handler for validating api input params
+func NewSearchHandler(clients *service.PlatformClients) *SearchHandler {
+	return &SearchHandler{
+		Validate: 			validator.New(),
+		PlatformClients: 	clients,
+	}
+}
 
 // GET route to search for a product using the name across all 4 platforms
 // (amazon, ebay, newegg, bestbuy) and display it on the frontend
-func (api *API) SearchProductByName(w http.ResponseWriter, r *http.Request) {
+func (search *SearchHandler) SearchProductByName(w http.ResponseWriter, r *http.Request) {
 	productName := r.PathValue("name")
 	if productName == "" {
 		http.Error(w, "No product name provided", http.StatusBadRequest)
 		return
 	}
 
-	if api.PlatformClients == nil {
+	if search.PlatformClients == nil {
 		http.Error(w, "Search service not available", http.StatusServiceUnavailable)
 		return
 	}
@@ -29,7 +43,7 @@ func (api *API) SearchProductByName(w http.ResponseWriter, r *http.Request) {
 	neweggCh := make(chan []types.SearchResult)
 
 	go func() {
-		res, err := service.SearchProductEbay(api.PlatformClients.Ebay, productName)
+		res, err := service.SearchProductEbay(search.PlatformClients.Ebay, productName)
 		if err != nil {
 			log.Printf("ebay search error: %v", err)
 			res = []types.SearchResult{}
