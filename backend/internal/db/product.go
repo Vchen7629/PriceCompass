@@ -17,7 +17,7 @@ func (r *Repository) InsertProductForUser(userID int, productName string) (types
 	createdAt := time.Now()
 
 	// One transaction for both queries so it can rollback on errors
-	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		// Try to insert, but if conflict, fetch the existing product instead
 		productQuery := `
 			INSERT INTO products (product_name, created_at, last_checked_at)
@@ -68,7 +68,7 @@ func (r *Repository) FetchUserTrackedProducts(userID int) ([]types.UserProduct, 
 	ctx := context.Background()
 	var productList []types.UserProduct
 	
-	err := db.WithTransaction(ctx, r.pool, func(pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(pgx.Tx) error {
 		query := `
 			WITH latest_prices AS (
 				SELECT DISTINCT ON (pso.product_id, pso.platform)
@@ -143,7 +143,7 @@ func (r *Repository) FetchUserTrackedProducts(userID int) ([]types.UserProduct, 
 func (r *Repository) DeleteProductForUser(userID, productID int) error {
 	ctx := context.Background()
 
-	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		query := `
 			DELETE FROM user_watchlist
 			WHERE user_id = $1

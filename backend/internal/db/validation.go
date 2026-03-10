@@ -1,7 +1,6 @@
 package db
 
 import (
-	"backend/pkg/db"
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4"
@@ -33,7 +32,7 @@ func (r *Repository) ValidateSession(sessionToken string) (int, string, error) {
 	var userId int
 	var username string
 
-	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		query := `SELECT id, username FROM sessions WHERE token = $1`
 
 		err := tx.QueryRow(ctx, query, sessionToken).Scan(&userId, &username)

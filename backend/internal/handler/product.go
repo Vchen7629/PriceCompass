@@ -34,7 +34,7 @@ func (h *ProductHandler) AddProductName(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.Validate.Struct(payload)
+	err = h.validate.Struct(payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -44,7 +44,7 @@ func (h *ProductHandler) AddProductName(w http.ResponseWriter, r *http.Request) 
 	product, dbErr := h.products.InsertProductForUser(payload.UserId, payload.ProductName)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if db.HandleDatabaseErrors(w, dbErr) {
+		if HandleDatabaseErrors(w, dbErr) {
 			return
 		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -76,7 +76,7 @@ func (h *ProductHandler) GetUserTrackedProducts(w http.ResponseWriter, r *http.R
 	productList, dbErr := h.products.FetchUserTrackedProducts(userID)
 	if dbErr != nil {
 		log.Println(dbErr)
-		if db.HandleDatabaseErrors(w, dbErr) {
+		if HandleDatabaseErrors(w, dbErr) {
 			return
 		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -105,7 +105,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = api.Validate.Struct(payload)
+	err = h.validate.Struct(payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return 

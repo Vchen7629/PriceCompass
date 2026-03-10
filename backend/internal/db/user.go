@@ -1,7 +1,6 @@
 package db
 
 import (
-	"backend/pkg/db"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -17,7 +16,7 @@ func (r *Repository) InsertNewUser(username, email, password string) error {
 	ctx := context.Background()
 	createdAt := time.Now()
 	
-	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		err := ValidateExistsUserTable(ctx, tx, "username", username)
 		if err != nil {
 			return err
@@ -58,7 +57,7 @@ func (r *Repository) LoginUser(username, password string) (string, error) {
 	ctx := context.Background()
 	var sessionToken string
 
-	err := db.WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
+	err := WithTransaction(ctx, r.pool, func(tx pgx.Tx) error {
 		var hashedPassword string
 
 		fetchPassQuery := `SELECT password_hash FROM users WHERE username = $1`

@@ -4,8 +4,7 @@ package db_test
 
 import (
 	"backend/internal/db"
-	pkgdb "backend/pkg/db"
-	"backend/pkg/test"
+	"backend/internal/test"
 	"context"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestValidateExistsUserTable(t *testing.T) {
 		
 		test.SeedUser(t, pool, "username1", "idk@gmail.com")
 
-		_ = pkgdb.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+		_ = db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 			err := db.ValidateExistsUserTable(ctx, tx, "username", "username10")
 
 			assert.Equal(t, nil, err, "Should not return an error if value doesnt exist")
@@ -38,7 +37,7 @@ func TestValidateExistsUserTable(t *testing.T) {
 		
 		test.SeedUser(t, pool, "username1", "idk@gmail.com")
 
-		_ = pkgdb.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
+		_ = db.WithTransaction(ctx, pool, func(tx pgx.Tx) error {
 			err := db.ValidateExistsUserTable(ctx, tx, "username", "username1")
 
 			assert.NotEqual(t, nil, err, "Should return an error if value exists")

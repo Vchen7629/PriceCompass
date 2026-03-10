@@ -4,7 +4,7 @@ package db_test
 
 import (
 	"backend/internal/db"
-	"backend/pkg/test"
+	"backend/internal/test"
 	"context"
 	"testing"
 
