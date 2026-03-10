@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"backend/pkg/db"
 	"backend/internal/store"
 	"encoding/json"
 	"log"
@@ -35,7 +34,7 @@ func (h *ProductHandler) AddProductName(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = api.Validate.Struct(payload)
+	err = h.Validate.Struct(payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
