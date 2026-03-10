@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"backend/internal/handler"
 	"backend/internal/middleware"
+	"backend/internal/service"
 )
 
 func main() {
@@ -18,7 +19,12 @@ func main() {
 
 	router := http.NewServeMux()
 
-	h := handler.NewAPI(nil, nil)
+	ebayClient, err := service.NewEbayClient()
+	if err != nil {
+		log.Fatalf("Failed to initialize eBay client: %v", err)
+	}
+
+	h := handler.NewSearchHandler(ebayClient)
 
 	router.HandleFunc("GET /api/v1/search/products?q={name...}", h.SearchProductByName)
 
@@ -30,6 +36,6 @@ func main() {
 	fmt.Println("Server running on http://localhost:8000")
 	serverErr := server.ListenAndServe()
 	if serverErr != nil {
-		log.Fatalf("HTTP Server failed to start with error: %v", err)
+		log.Fatalf("HTTP Server failed to start with error: %v", serverErr)
 	}
 }
